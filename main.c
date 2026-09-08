@@ -8,20 +8,22 @@
 #include <avr/io.h>
 #include <stdio.h>
 #include "UART.h"
+#include <util/delay.h>
 
 
 int main(void)
 {
-    uartInit();
+    MCUCR |= (1 << SRE);
 
-    fdevopen(uart_putchar, NULL);
+    SFIOR |= (1 << XMM2);
 
-    printf("hei\n");
+    volatile uint8_t *ptr;
+    uint8_t low_byte = 0;
 
-    while (1)
-    {
-        char a = uartReciveChar();
-        uartSendChar(a);
-        printf("\n");
+    while (1) {
+        ptr = (uint8_t *)(0x1000 | low_byte);
+        *ptr = 0x00;
+        _delay_ms(300);
+        low_byte++;
     }
 }
