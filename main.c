@@ -22,5 +22,6 @@ int main(void)
     {
         char a = uartReciveChar();
         uartSendChar(a);
+        printf("\n");
     }
 }
