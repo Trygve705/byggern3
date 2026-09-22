@@ -52,6 +52,18 @@ JoystickPosition getJoystickPosition(void){
     return pos;
 }
 
+JoystickPosition getSliderPosition(void){
+    uint8_t x_raw, y_raw, x_slider, y_slider;
+    adcReadAll(&x_raw, &y_raw, & y_slider, &x_slider);
+
+
+    JoystickPosition pos;
+    pos.x = limitPosition(((int16_t)x_slider - x_center) * 100 / 86);
+    pos.y = limitPosition(((int16_t)y_slider - y_center) * 100 / 86);
+    return pos;
+}
+
+
 
 JoystickDirection getJpystickDirection(void){
 

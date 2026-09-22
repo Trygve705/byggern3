@@ -17,6 +17,7 @@ void adcInit(void);
 void adcReadAll(uint8_t *ch0, uint8_t *ch1, uint8_t *ch2, uint8_t *ch3);
 JoystickPosition getJoystickPosition(void);
 JoystickDirection getJpystickDirection(void);
+JoystickPosition getSliderPosition(void);
 void joystickCalibrate(void);
 
 #endif
