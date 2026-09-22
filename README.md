@@ -11,3 +11,4 @@ Joystick bevegelse:
     
     butn:
         aktiv lav 0-5 V
+
