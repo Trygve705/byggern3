@@ -9,6 +9,12 @@ static volatile uint8_t * const adc = (uint8_t *)adc_base;
 
 static uint8_t x_center = 128, y_center = 128;
 
+static int8_t limitPosition(int16_t position){
+    if (position < -100) return -100;
+    if (position > 100) return 100;
+    return position;
+}
+
 void adcInit(void){
 
     DDRD |= (1 << PD5);
@@ -41,8 +47,8 @@ JoystickPosition getJoystickPosition(void){
 
 
     JoystickPosition pos;
-    pos.x = ((int16_t)x_raw - x_center) * 100 / 86;
-    pos.y = ((int16_t)y_raw - y_center) * 100 / 86;
+    pos.x = limitPosition(((int16_t)x_raw - x_center) * 100 / 86);
+    pos.y = limitPosition(((int16_t)y_raw - y_center) * 100 / 86);
     return pos;
 }
 

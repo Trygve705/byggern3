@@ -26,8 +26,8 @@ int main(void)
     fdevopen(uart_putchar, NULL);
     adcInit();
     joystickCalibrate();
-    
-    static const char *dirNames[] = {"midt", " opp", "ned", "venstre", "høyre"};
+
+    static const char *dirNames[] = {"midt", " venstre", "høyre", "opp", "ned"};
 
     while (1) {
         JoystickPosition pos = getJoystickPosition();
