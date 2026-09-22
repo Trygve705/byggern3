@@ -7,7 +7,7 @@
 
 static volatile uint8_t * const adc = (uint8_t *)adc_base;
 
-static int8_t x_center = 128, y_center = 128;
+static uint8_t x_center = 128, y_center = 128;
 
 void adcInit(void){
 
@@ -41,8 +41,8 @@ JoystickPosition getJoystickPosition(void){
 
 
     JoystickPosition pos;
-    pos.x = ((int16_t)x_raw - x_center) * 100 / 128;
-    pos.y = ((int16_t)y_raw - y_center) * 100 / 128;
+    pos.x = ((int16_t)x_raw - x_center) * 100 / 86;
+    pos.y = ((int16_t)y_raw - y_center) * 100 / 86;
     return pos;
 }
 
