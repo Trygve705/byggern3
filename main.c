@@ -12,6 +12,7 @@
 #include "sram_test.h"
 #include "spi.h"
 #include "oled.h"
+#include "fonts.h"
 
 #define F_CPU 4915200UL
 #include <util/delay.h>
@@ -34,16 +35,14 @@ int main(void)
 
     static const char *dirNames[] = {"midt", " venstre", "høyre", "opp", "ned"};
 
+    char *str = "Yo, bitch";
+
+    oledPos(2,1);
+    oledPrint(str);
+
     while (1) {
-        JoystickPosition pos = getJoystickPosition();
-        JoystickDirection dir = getJpystickDirection();
+        
 
-        JoystickPosition slider_pos = getSliderPosition();
-
-        printf("X: %4d  Y: %4d  retning %s Slider X: %4d Slider Y: %4d \r\n", 
-                pos.x, pos.y, dirNames[dir], slider_pos.x, slider_pos.y);
-
-        _delay_ms(200);
 
 
     }

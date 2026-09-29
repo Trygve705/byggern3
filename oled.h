@@ -9,7 +9,9 @@ void oledInit(void);
 void goToLine(uint8_t line);
 void goToColumn(uint8_t column);
 void oledPos(uint8_t row, uint8_t column);
-int oledPrint(char *str);
+void oledHome(void);
+void oledClearLine(uint8_t line);
+void oledPrint(char *str);
 
 
 #endif

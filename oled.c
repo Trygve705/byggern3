@@ -3,24 +3,31 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <avr/io.h>
+#include <avr/pgmspace.h>
 #include "spi.h"
 
 void oledCommand(uint8_t cmd){
-    PORTB &= ~(1 << PB2);
+    PORTB &= ~(1 << DC);
     selectSlave(1);
     spiWriteByte(cmd);
+    deselectSlave();
 }
 
 void oledData(uint8_t data){
-    PORTB |= (1 << PB2);
+    PORTB |= (1 << DC);
     selectSlave(1);
     spiWriteByte(data);
+    deselectSlave();
 }
 
 void oledInit(void) {
     DDRB |= (1 << DC);
 
     oledCommand(0xAF);
+    
+    for (uint8_t line = 0; line < 8; line++) {
+        oledClearLine(line);
+    }
 }
 
 void goToLine(uint8_t line){
@@ -37,11 +44,22 @@ void oledPos(uint8_t row, uint8_t column) {
     goToColumn(column);
 }
 
-int oledPrint(char *str){
+void oledHome(void){
+    oledPos(0, 0);
+}
+
+void oledClearLine(uint8_t line){
+    oledPos(line, 0);
+    for (uint8_t col = 0; col < 128; col++) {
+        oledData(0x00);
+    }
+}
+
+void oledPrint(char *str){
     while (*str) {
         uint8_t idx = (uint8_t)(*str - 0x20);
         for (uint8_t col = 0; col < 5; col++) {
-            oledData(pgm_read_byte(&font5x7[idx][col]));
+            oledData(pgm_read_byte(&font5[idx][col]));
         }
         oledData(0x00);
         str++;

@@ -46,6 +46,6 @@ void selectSlave(uint8_t slave){
     } 
 }
 
-void deselectSlave(uint8_t slave){
+void deselectSlave(void){
     PORTB |= (1 << SPI_SS) | (1 << SPI_SS2);
 }
