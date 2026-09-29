@@ -40,6 +40,8 @@ int main(void)
     menuInit();
 
     while (1) {
+        checkMenuPos();
+        drawCross();
 
     }
 }

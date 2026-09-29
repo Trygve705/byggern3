@@ -65,7 +65,7 @@ JoystickPosition getSliderPosition(void){
 
 
 
-JoystickDirection getJpystickDirection(void){
+JoystickDirection getJoystickDirection(void){
 
     JoystickPosition pos = getJoystickPosition();
     const int8_t treshold = 30;
