@@ -84,6 +84,11 @@ void joystickCalibrate(void){
     y_center = y_raw; 
 }
 
+void buttonInit(void) {
+    DDRD &= ~(1 << PD3);
+    PORTD |= (1 << PD3);
+}
 
-
-
+uint8_t getJoystickButton(void) {
+    return !(PIND & (1 << PD3));
+}
