@@ -1,10 +1,15 @@
 #define DC PB2
+#define OLEDRES PB0
+#define F_CPU 4915200UL
 
 #include <stdint.h>
 #include <stdio.h>
 #include <avr/io.h>
 #include <avr/pgmspace.h>
+#include <util/delay.h>
 #include "spi.h"
+#include "oled.h"
+#include "fonts.h"
 
 void oledCommand(uint8_t cmd){
     PORTB &= ~(1 << DC);
@@ -20,14 +25,25 @@ void oledData(uint8_t data){
     deselectSlave();
 }
 
-void oledInit(void) {
-    DDRB |= (1 << DC);
+void oledReset(void) {
+    PORTB |= (1 << OLEDRES);
+    _delay_ms(10);
+    PORTB &= ~(1 << OLEDRES);
+    _delay_ms(10);
+    PORTB |= (1 << OLEDRES);
+    _delay_ms(10);
+}
 
-    oledCommand(0xAF);
+void oledInit(void) {
+    DDRB |= (1 << DC | 1 << OLEDRES);
     
+    oledReset();
+
     for (uint8_t line = 0; line < 8; line++) {
         oledClearLine(line);
     }
+
+    oledCommand(0xAF);
 }
 
 void goToLine(uint8_t line){

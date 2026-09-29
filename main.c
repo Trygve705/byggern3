@@ -41,9 +41,6 @@ int main(void)
     oledPrint(str);
 
     while (1) {
-        
-
-
 
     }
 }
