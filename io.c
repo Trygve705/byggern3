@@ -1,4 +1,5 @@
 #include "io.h"
+#include "spi.h"
 #include <avr/io.h>
 
 #define F_CPU 4915200UL
@@ -28,4 +29,13 @@ Buttons readButtons(void) {
 
     deselectSlave();
     return btns;
+}
+
+void setLed(uint8_t led, uint8_t on) {
+    selectSlave(0);
+    spiWriteByte(0x05);
+    _delay_us(40);
+    spiWriteByte(led);
+    spiWriteByte(on);
+    deselectSlave();
 }

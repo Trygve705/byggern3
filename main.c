@@ -48,12 +48,9 @@ int main(void)
 
         btns = readButtons();
         if (btns.R5) {
-            selectSlave(0);
-            spiWriteByte(0x05);
-            _delay_us(40);
-            spiWriteByte(2);
-            spiWriteByte(1);
-            deselectSlave();
+            setLed(2, 1);
+            _delay_ms(1000);
+            setLed(2, 0);
         }
 
     }

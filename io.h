@@ -43,5 +43,6 @@ void buttonInit(void);
 uint8_t getJoystickButton(void);
 
 Buttons readButtons(void);
+void setLed(uint8_t led, uint8_t on);
 
 #endif
