@@ -6,7 +6,6 @@
 
 void oledCommand(uint8_t cmd);
 void oledData(uint8_t data);
-void oledReset(void);
 void oledInit(void);
 void goToLine(uint8_t line);
 void goToColumn(uint8_t column);
