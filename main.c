@@ -13,6 +13,7 @@
 #include "spi.h"
 #include "oled.h"
 #include "menu.h"
+#include "io.h"
 
 #define F_CPU 4915200UL
 #include <util/delay.h>
@@ -39,9 +40,21 @@ int main(void)
 
     menuInit();
 
+    Buttons btns = readButtons();
+
     while (1) {
         checkMenuPos();
         drawCross();
+
+        btns = readButtons();
+        if (btns.R5) {
+            selectSlave(0);
+            spiWriteByte(0x05);
+            _delay_us(40);
+            spiWriteByte(2);
+            spiWriteByte(1);
+            deselectSlave();
+        }
 
     }
 }

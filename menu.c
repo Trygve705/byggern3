@@ -13,15 +13,13 @@ uint8_t menuElements[3] = {2, 4, 6};
 void menuInit(void){
     oledInit();
 
-    oledPos(0, 40);
+    oledPos(0, 50);
     char *intro = "MENU";
     oledPrint(intro);
 
     oledPos(2, 10);
     char *valg1 = "Valg 1";
     oledPrint(valg1);
-    oledPos(2, 100);
-    oledPrint("x");
 
     oledPos(4, 10);
     char *valg2 = "Valg 2";
@@ -34,11 +32,10 @@ void menuInit(void){
     uint8_t menyValg = 1;
     JoystickDirection forrigeRetning = 0;
 
-    _delay_ms(5000);
     
-
-
 }
+
+
 
 void checkMenuPos(void){
     JoystickDirection direction;
@@ -97,4 +94,8 @@ void drawCross(void){
         oledPrint(cross);
 
     }
+}
+
+uint8_t getMenuChoise(void) {
+    return menyValg;
 }

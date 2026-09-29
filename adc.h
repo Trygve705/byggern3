@@ -20,7 +20,5 @@ JoystickDirection getJoystickDirection(void);
 JoystickPosition getSliderPosition(void);
 void joystickCalibrate(void);
 
-void buttonInit(void);
-uint8_t getJoystickButton(void);
 
 #endif
