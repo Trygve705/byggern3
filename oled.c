@@ -35,9 +35,12 @@ void oledReset(void) {
 }
 
 void oledInit(void) {
-    DDRB |= (1 << DC | 1 << OLEDRES);
+    DDRB |= (1 << DC) | (1 << OLEDRES);
     
     oledReset();
+    oledCommand(0xAE); 
+    oledCommand(0xA1);
+    oledCommand(0xC8);
 
     for (uint8_t line = 0; line < 8; line++) {
         oledClearLine(line);

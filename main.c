@@ -12,7 +12,6 @@
 #include "sram_test.h"
 #include "spi.h"
 #include "oled.h"
-#include "fonts.h"
 
 #define F_CPU 4915200UL
 #include <util/delay.h>
@@ -37,7 +36,7 @@ int main(void)
 
     char *str = "Yo, bitch";
 
-    oledPos(2,1);
+    oledPos(1,100);
     oledPrint(str);
 
     while (1) {
