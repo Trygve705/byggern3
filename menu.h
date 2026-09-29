@@ -1,3 +1,7 @@
+
 void menuInit(void);
 
-void menyPos(void);
+void checkMenuPos(void);
+
+
+void drawCross(void);
