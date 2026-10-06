@@ -54,7 +54,7 @@ uint8_t CAN_recieve_message(CAN_message* msg) {
         return 0;
     }
 
-    msg->id |= (mpc2515_read(MCP_RXB0SIDH) << 3);
+    msg->id = (uint16_t)(mpc2515_read(MCP_RXB0SIDH) << 3);
     msg->id |= (mpc2515_read(MCP_RXB0SIDL) >> 5);
 
     msg->length = (mpc2515_read(MCP_RXB0DLC) & (0b00001111));
