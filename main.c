@@ -15,12 +15,17 @@
  *   6. INT-pinnen (PD2/INT0) gir avbrudd ved mottak
  *   7. Mottak uten ny melding returnerer 0
  *
+ * Alle tekststrenger ligger i flash (PSTR/printf_P), fordi ATmega162 bare
+ * har 1 KB intern SRAM og strengene ellers ikke faar plass.
+ *
  * Del 2 sender joystick- og sliderposisjon kontinuerlig og sammenligner
  * mottatt melding med det som ble sendt.
  */
 
 #include <avr/io.h>
 #include <stdio.h>
+#include <string.h>
+#include <avr/pgmspace.h>
 #include "UART.h"
 #include "adc.h"
 #include "spi.h"
@@ -41,17 +46,19 @@ extern volatile uint8_t can_flag;   // settes i ISR(INT0_vect) i CAN_communicati
 static uint8_t tests_ok = 0;
 static uint8_t tests_fail = 0;
 
-static void report(const char *name, uint8_t ok) {
-    printf("[%s] %s\r\n", ok ? " OK " : "FEIL", name);
+static void report(PGM_P name, uint8_t ok) {
+    printf_P(ok ? PSTR("[ OK ] ") : PSTR("[FEIL] "));
+    printf_P(name);
+    printf_P(PSTR("\r\n"));
     if (ok) tests_ok++; else tests_fail++;
 }
 
-static void print_msg(const char *prefix, const CAN_message *m) {
-    printf("   %s id=0x%03x len=%u data:", prefix, m->id, m->length);
+static void print_msg(PGM_P prefix, const CAN_message *m) {
+    printf_P(PSTR("   %S id=0x%03x len=%u data:"), prefix, m->id, m->length);
     for (uint8_t i = 0; i < m->length && i < 8; i++) {
-        printf(" %02x", m->data[i]);
+        printf_P(PSTR(" %02x"), m->data[i]);
     }
-    printf("\r\n");
+    printf_P(PSTR("\r\n"));
 }
 
 static uint8_t messages_equal(const CAN_message *a, const CAN_message *b) {
@@ -88,18 +95,18 @@ static void test_register_rw(void) {
         mpc2515_write(MCP_TXB1D0, patterns[i]);
         uint8_t r = mpc2515_read(MCP_TXB1D0);
         if (r != patterns[i]) {
-            printf("   skrev 0x%02x, leste 0x%02x\r\n", patterns[i], r);
+            printf_P(PSTR("   skrev 0x%02x, leste 0x%02x\r\n"), patterns[i], r);
             ok = 0;
         }
     }
-    report("1. SPI skriv/les register", ok);
+    report(PSTR("1. SPI skriv/les register"), ok);
 }
 
 static void test_mode(void) {
     uint8_t canstat = mpc2515_read(MCP_CANSTAT);
     uint8_t ok = (canstat & MODE_MASK) == MODE_LOOPBACK;
-    if (!ok) printf("   CANSTAT=0x%02x (forventet 0x4X)\r\n", canstat);
-    report("2. Loopback-modus", ok);
+    if (!ok) printf_P(PSTR("   CANSTAT=0x%02x (forventet 0x4X)\r\n"), canstat);
+    report(PSTR("2. Loopback-modus"), ok);
 }
 
 static void test_bit_modify(void) {
@@ -112,8 +119,8 @@ static void test_bit_modify(void) {
     uint8_t cleared = mpc2515_read(MCP_CANINTE);
 
     uint8_t ok = (set == (before | 0x80)) && (cleared == (before & ~0x80));
-    if (!ok) printf("   foer=0x%02x satt=0x%02x nullstilt=0x%02x\r\n", before, set, cleared);
-    report("3. Bit Modify", ok);
+    if (!ok) printf_P(PSTR("   foer=0x%02x satt=0x%02x nullstilt=0x%02x\r\n"), before, set, cleared);
+    report(PSTR("3. Bit Modify"), ok);
 }
 
 static void test_read_status(void) {
@@ -129,12 +136,12 @@ static void test_read_status(void) {
     uint8_t status_after = mpc2515_read_status();
 
     uint8_t ok = got && (status_before & 0x01) && !(status_after & 0x01);
-    if (!ok) printf("   status foer=0x%02x etter=0x%02x\r\n", status_before, status_after);
-    report("4. Read Status (RX0IF)", ok);
+    if (!ok) printf_P(PSTR("   status foer=0x%02x etter=0x%02x\r\n"), status_before, status_after);
+    report(PSTR("4. Read Status (RX0IF)"), ok);
 }
 
 static void test_fixed_messages(void) {
-    const CAN_message tests[] = {
+    static const CAN_message tests[] PROGMEM = {
         {.id = 0x000, .length = 0},
         {.id = 0x7FF, .length = 8, .data = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}},
         {.id = 0x555, .length = 8, .data = {0x55, 0xAA, 0x55, 0xAA, 0x55, 0xAA, 0x55, 0xAA}},
@@ -146,18 +153,19 @@ static void test_fixed_messages(void) {
     uint8_t ok = 1;
 
     for (uint8_t i = 0; i < n; i++) {
-        CAN_message rx;
-        if (!loopback(&tests[i], &rx)) {
-            printf("   melding %u: ingenting mottatt\r\n", i);
+        CAN_message tx, rx;
+        memcpy_P(&tx, &tests[i], sizeof(tx));   // hent testmeldingen fra flash
+        if (!loopback(&tx, &rx)) {
+            printf_P(PSTR("   melding %u: ingenting mottatt\r\n"), i);
             ok = 0;
-        } else if (!messages_equal(&tests[i], &rx)) {
-            printf("   melding %u: ulik\r\n", i);
-            print_msg("sendt:  ", &tests[i]);
-            print_msg("mottatt:", &rx);
+        } else if (!messages_equal(&tx, &rx)) {
+            printf_P(PSTR("   melding %u: ulik\r\n"), i);
+            print_msg(PSTR("sendt:  "), &tx);
+            print_msg(PSTR("mottatt:"), &rx);
             ok = 0;
         }
     }
-    report("5. Faste testmeldinger (ID, lengde, data)", ok);
+    report(PSTR("5. Faste testmeldinger (ID, lengde, data)"), ok);
 }
 
 static void test_interrupt(void) {
@@ -173,15 +181,15 @@ static void test_interrupt(void) {
     rx.id = 0;
     CAN_recieve_message(&rx);   // tom bufferet slik at INT gaar hoy igjen
 
-    if (!flag) printf("   ingen avbrudd. Sjekk INT-pinnen (MCP2515 pinne 12) -> PD2\r\n");
-    report("6. Avbrudd paa INT0 (PD2)", flag);
+    if (!flag) printf_P(PSTR("   ingen avbrudd. Sjekk INT-pinnen (MCP2515 pinne 12) -> PD2\r\n"));
+    report(PSTR("6. Avbrudd paa INT0 (PD2)"), flag);
 }
 
 static void test_no_message(void) {
     CAN_message rx;
     rx.id = 0;
     uint8_t got = CAN_recieve_message(&rx);
-    report("7. Ingen ny melding -> receive returnerer 0", got == 0);
+    report(PSTR("7. Ingen ny melding -> receive returnerer 0"), got == 0);
 }
 
 /* ---------------- main ---------------- */
@@ -200,8 +208,8 @@ int main(void)
     menuInit();     // initialiserer ogsaa OLED
     CAN_init();
 
-    printf("\r\n===== CAN-test (loopback) =====\r\n");
-    printf("CANSTAT: 0x%02x  CANCTRL: 0x%02x\r\n",
+    printf_P(PSTR("\r\n===== CAN-test (loopback) =====\r\n"));
+    printf_P(PSTR("CANSTAT: 0x%02x  CANCTRL: 0x%02x\r\n"),
            mpc2515_read(MCP_CANSTAT), mpc2515_read(MCP_CANCTRL));
 
     test_register_rw();
@@ -212,7 +220,7 @@ int main(void)
     test_interrupt();
     test_no_message();
 
-    printf("===== %u OK, %u FEIL =====\r\n\r\n", tests_ok, tests_fail);
+    printf_P(PSTR("===== %u OK, %u FEIL =====\r\n\r\n"), tests_ok, tests_fail);
 
     /* -------- Kontinuerlig test med joystick og slider -------- */
 
@@ -241,15 +249,15 @@ int main(void)
         uint8_t ok = got && messages_equal(&msg, &rx);
         if (ok) ok_count++;
 
-        printf("sendt   joyX:%4d joyY:%4d slX:%4d slY:%4d\r\n",
+        printf_P(PSTR("sendt   joyX:%4d joyY:%4d slX:%4d slY:%4d\r\n"),
                joy.x, joy.y, slider.x, slider.y);
         if (got) {
-            printf("mottatt joyX:%4d joyY:%4d slX:%4d slY:%4d  id=0x%03x  %s  (%u/%u OK)\r\n\r\n",
+            printf_P(PSTR("mottatt joyX:%4d joyY:%4d slX:%4d slY:%4d  id=0x%03x  %s  (%u/%u OK)\r\n\r\n"),
                    (int8_t)rx.data[0], (int8_t)rx.data[1],
                    (int8_t)rx.data[2], (int8_t)rx.data[3],
                    rx.id, ok ? "OK" : "FEIL", ok_count, sent);
         } else {
-            printf("mottatt: INGENTING  (%u/%u OK)\r\n\r\n", ok_count, sent);
+            printf_P(PSTR("mottatt: INGENTING  (%u/%u OK)\r\n\r\n"), ok_count, sent);
         }
 
         _delay_ms(200);
