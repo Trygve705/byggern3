@@ -1,5 +1,6 @@
 #define SPI_SS PB4 // IO
 #define SPI_SS2 PB3 // OLED
+#define SPI_SS3 PD4 // CAN-controller
 
 #define SPI_MOSI PB5 
 #define SPI_MISO PB6
@@ -10,11 +11,15 @@
 
 void spiInit(void){
 
+    DDRD |= (1 << SPI_SS3);
+
+    PORTD |= (1 << SPI_SS3);
+
     DDRB |= (1 << SPI_MOSI) | (1 << SPI_SCK) | (1 << SPI_SS) | (1 << SPI_SS2);
     DDRB &= ~(1 << SPI_MISO);
 
     PORTB |= (1 << SPI_SS) | (1 << SPI_SS2);
-
+    
 
     SPCR |= (1 << SPE) | (1 << MSTR) | (1 << SPR0);
 
@@ -41,6 +46,11 @@ void selectSlave(uint8_t slave){
     case 1: 
         PORTB &= ~(1 << SPI_SS2);
         break;
+
+    case 2:
+        PORTD &= ~(1 << SPI_SS3);
+        break;
+        
     
     default:
         break;
