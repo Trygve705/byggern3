@@ -84,6 +84,5 @@ int main(void)
                 msg.data[0], msg.data[1], msg.data[2], msg.data[3]);
         printf("recieved_message: joyX: %4d joyY: %4d sliderX: %4d sliderY: %4d \r\n",
                 recieved_msg.data[0], recieved_msg.data[1], recieved_msg.data[2], recieved_msg.data[3]);
-
     }
 }
