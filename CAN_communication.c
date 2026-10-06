@@ -49,10 +49,13 @@ void CAN_send_message(const CAN_message *msg) {
 
 }
 
-void CAN_recieve_message(CAN_message* msg) {
+uint8_t CAN_recieve_message(CAN_message* msg) {
+    if (!(mpc2515_read(MCP_CANINTF) & 0x01)) {
+        return 0;
+    }
 
     msg->id |= (mpc2515_read(MCP_RXB0SIDH) << 3);
-    msg->id |= (5 >> mpc2515_read(MCP_RXB0SIDL));
+    msg->id |= (mpc2515_read(MCP_RXB0SIDL) >> 5);
 
     msg->length = (mpc2515_read(MCP_RXB0DLC) & (0b00001111));
 
@@ -62,6 +65,7 @@ void CAN_recieve_message(CAN_message* msg) {
 
     mpc2515_bit_modify(MCP_CANINTF, 0x01, 0x00);
 
+    return 1;
 }
 
 ISR(INT0_vect) {

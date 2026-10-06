@@ -41,6 +41,8 @@ int main(void)
     char *str = "Yo, bitch";
 
     menuInit();
+    spiInit();
+    CAN_init();
 
     Buttons btns = readButtons();
 
@@ -72,6 +74,7 @@ int main(void)
         setLed(3, btns.R5);
 
         CAN_send_message(&msg);
+        _delay_ms(1);
         CAN_recieve_message(&recieved_msg);
 
         printf("message: joyX: %4d joyY: %4d sliderX: %4d sliderY: %4d \r\n",
