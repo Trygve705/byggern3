@@ -16,6 +16,7 @@
 #include "io.h"
 #include "mpc2515_driver.h"
 #include "CAN_communication.h"
+#include "mcp2515.h"
 
 #define F_CPU 4915200UL
 #include <util/delay.h>
@@ -43,6 +44,8 @@ int main(void)
     menuInit();
     spiInit();
     CAN_init();
+    printf("CANSTAT: 0x%02x CANCTRL: 0x%02x\r\n",
+            mpc2515_read(MCP_CANSTAT), mpc2515_read(MCP_CANCTRL));
 
     Buttons btns = readButtons();
 
