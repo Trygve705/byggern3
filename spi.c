@@ -40,6 +40,7 @@ void selectSlave(uint8_t slave){
 
     case 1: 
         PORTB &= ~(1 << SPI_SS2);
+        break;
     
     default:
         break;

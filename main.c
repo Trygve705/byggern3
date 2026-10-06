@@ -42,9 +42,19 @@ int main(void)
 
     Buttons btns = readButtons();
 
+    JoystickPosition joyPos = getJoystickPosition();
+    JoystickPosition sliderPos = getSliderPosition(); 
+
     while (1) {
         checkMenuPos();
         drawCross();
+
+        joyPos = getJoystickPosition();
+        sliderPos = getSliderPosition();
+
+        printf("joyX: %4d joyY: %4d sliderX: %4d sliderY: %4d \r\n",
+                joyPos.x, joyPos.y, sliderPos.x, sliderPos.y);
+        
 
         btns = readButtons();
         if (btns.R5) {
