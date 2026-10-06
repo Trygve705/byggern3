@@ -4,6 +4,11 @@
 
 #define MCP_SLAVE 2
 
+void mpc2515_reset(void) {
+    selectSlave(MCP_SLAVE);
+    spiWriteByte(0xC0);
+    deselectSlave();
+}
 
 uint8_t mpc2515_read(uint8_t address){
     selectSlave(MCP_SLAVE);

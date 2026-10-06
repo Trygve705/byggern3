@@ -14,6 +14,8 @@
 #include "oled.h"
 #include "menu.h"
 #include "io.h"
+#include "mpc2515_driver.h"
+#include "CAN_communication.h"
 
 #define F_CPU 4915200UL
 #include <util/delay.h>
@@ -57,11 +59,7 @@ int main(void)
         
 
         btns = readButtons();
-        if (btns.R5) {
-            setLed(2, 1);
-            _delay_ms(1000);
-            setLed(2, 0);
-        }
+        setLed(3, btns.R5);
 
     }
 }
