@@ -5,12 +5,12 @@
 
 typedef struct {
     uint16_t id;
-    uint8_t lenght;
+    uint8_t length;
     uint8_t data[8];
 } CAN_message;
 
 void CAN_init(void);
-void CAN_send_message(CAN_message msg);
-CAN_message *CAN_recieve_message(void);
+void CAN_send_message(const CAN_message* msg);
+void CAN_recieve_message(CAN_message* msg);
 
 #endif

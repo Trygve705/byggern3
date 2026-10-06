@@ -19,7 +19,7 @@ void spiInit(void){
     DDRB &= ~(1 << SPI_MISO);
 
     PORTB |= (1 << SPI_SS) | (1 << SPI_SS2);
-    
+
 
     SPCR |= (1 << SPE) | (1 << MSTR) | (1 << SPR0);
 
@@ -58,5 +58,5 @@ void selectSlave(uint8_t slave){
 }
 
 void deselectSlave(void){
-    PORTB |= (1 << SPI_SS) | (1 << SPI_SS2);
+    PORTB |= (1 << SPI_SS) | (1 << SPI_SS2) | (1 << SPI_SS3);
 }
