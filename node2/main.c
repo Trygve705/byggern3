@@ -3,6 +3,13 @@
 #include "sam.h"
 #include "uart.h"
 #include "can.h"
+#include "motor.h"
+#include "time.h"
+
+
+#define MCK 84000000UL
+#define PWM_FREQ 20000UL //20kHz pwm-signal
+#define PWM_PERIOD (MCK / PWM_FREQ)
 
 /*
  * Remember to update the Makefile with the (relative) path to the uart.c file.
@@ -15,19 +22,37 @@
  */
 //#include "../path_to/uart.h"
 
-int main()
-{
-    SystemInit();
 
+
+int main()
+{   
+    uart_init(MCK, 9600);
+
+    CanInit init;
+    init.brp = 20;
+    init.propag = 1;
+    init.phase1 = 6;
+    init.phase2 = 5;
+    init.sjw = 0; //match med cain init fra node 1
+    uint8_t rxInterrupt = 1;
+    can_init(init, rxInterrupt);
+    motor_init();
+    SystemInit();
+    printf("Hei verden\n");
     WDT->WDT_MR = WDT_MR_WDDIS; //Disable Watchdog Timer
 
-    //Uncomment after including uart above
-    //uart_init(/*cpufreq*/, /*baud*/);
-    //printf("Hello World\n\r");
+
+
+
+
+
 
     while (1)
     {
-        /* code */
+        set_motor(10);
+        time_spinFor(seconds(1));
+        set_motor(-90);
+        time_spinFor(seconds(1));
     }
     
 }

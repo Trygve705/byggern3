@@ -10,8 +10,8 @@ SOURCE_FILES = \
 	main.c \
 	uart.c \
 	can.c \
-#   filename2.c \
-#	filenameN.c
+    motor.c \
+	time.c \
 
 # Feel free to ignore anything below this line
 VPATH:= $(dir $(SOURCE_FILES))
