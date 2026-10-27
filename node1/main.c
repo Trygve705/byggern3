@@ -62,5 +62,7 @@ int main(void)
         setLed(3, btns.R5);
 
         _delay_ms(20);
+
+        printf("hei");
     }
 }

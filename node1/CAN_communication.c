@@ -2,7 +2,9 @@
 #include "mcp2515_driver.h"
 #include <avr/io.h>
 #include <avr/interrupt.h>
+#include <stdio.h>
 #include "mcp2515.h"
+#include "UART.h"
 
 #define F_CPU 4915200UL
 #include <util/delay.h>
@@ -14,6 +16,7 @@
 #define FOSC 16000000UL
 
 volatile uint8_t can_flag = 0;
+
 
 void CAN_init(void) {
     mcp2515_reset();
@@ -31,7 +34,7 @@ void CAN_init(void) {
     mcp2515_bit_modify(MCP_CANCTRL, 0xE0, 0x80); //configuration mode
     mcp2515_write(MCP_CNF1, 0x01);
     mcp2515_write(MCP_CNF2, 0xB1);
-    mcp2515_write(MCP_CNF3, 0x03); //match settings med caninit fra node 2.
+    mcp2515_write(MCP_CNF3, 0x05); //match settings med caninit fra node 2.
     mcp2515_bit_modify(MCP_CANCTRL, 0xE0, 0x00); //normal operation mode
 
     mcp2515_write(MCP_CANINTE, 0b00000001); // Enable RX0IE (full recieve byte på buffer 0) interrupt

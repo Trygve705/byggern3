@@ -6,7 +6,7 @@
 typedef struct {
     uint16_t id;
     uint8_t length;
-    uint8_t data[8];
+    int8_t data[8];
 } CAN_message;
 
 void CAN_init(void);
