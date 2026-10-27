@@ -5,6 +5,8 @@
 #include "can.h"
 #include "motor.h"
 #include "time.h"
+#include "timer.h"
+#include "IR.h"
 
 
 #define MCK 84000000UL
@@ -28,10 +30,12 @@ extern volatile uint8_t rx_flag;
 
 int main()
 {   
-    uart_init(MCK, 9600);
+    uart_init(MCK, 115200);
 
     motor_init();
     SystemInit();
+    timer_init();
+    adc_init();
     
     printf("Hei verden\n");
     WDT->WDT_MR = WDT_MR_WDDIS; //Disable Watchdog Timer
@@ -47,20 +51,29 @@ int main()
     uint8_t rxInterrupt = 1;
     can_init(init, rxInterrupt);
 
+    CanMsg msg;
 
     while (1)
     {
         if (rx_flag) {
             rx_flag = 0;
 
-            CanMsg* msg;
-            can_rx(msg);
+            can_rx(&msg);
 
             CAN0->CAN_MB[1].CAN_MCR = CAN_MCR_MTCR;
             CAN0->CAN_IER = CAN_IER_MB1;
 
-            can_printmsg(*msg);
+            // can_printmsg(msg);
 
+            set_motor(msg.byte[0]);
+        }
+
+        if (timer_flag) {
+            timer_flag = 0;
+            // printf("%lu ms\r\n", (uint32_t)totalMsecs(time_now()));
+            printf("IR: %u          ", adc_read_ir());
+            ir_score_update();
+            printf("score: %u, last_score: %u, highscore: %u\r\n", score, last_score, highscore);
         }
 
     }

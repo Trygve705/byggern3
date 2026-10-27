@@ -29,22 +29,21 @@ void motor_init(void){
 }
 
 
-void set_motor(int percent){
+void set_motor(int8_t percent){
 
-    int speed = abs(percent) * (52500 / 100);
-    PWM -> PWM_CH_NUM[1].PWM_CDTY = speed; // Antall tikk i en duty
+    if (percent > 100) percent = 100;
+    if (percent < -100) percent = -100;
+
+    int duty_ticks = (0.0815f + 0.0003f * percent) * (52500);
+    PWM -> PWM_CH_NUM[1].PWM_CDTY = duty_ticks; // Antall tikk i en duty
 
 
     if (percent > 0){
         PIOC -> PIO_SODR = PIO_PB23; // setter pin høy
     }
-     
+    
     else{
-        PIOC -> PIO_CODR = PIO_PB23; // setter pin høy
+        PIOC -> PIO_CODR = PIO_PB23; // setter pin lav
         
     }
-
-
-
-
 }

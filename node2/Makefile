@@ -12,6 +12,8 @@ SOURCE_FILES = \
 	can.c \
     motor.c \
 	time.c \
+	timer.c \
+	IR.c \
 
 # Feel free to ignore anything below this line
 VPATH:= $(dir $(SOURCE_FILES))
@@ -62,7 +64,7 @@ debug: $(ELF)
 flash: $(ELF)
 	#./sam/write_bin.sh sam/openocd.cfg $(BUILD_DIR)/main.elf
 	if pgr openocd; then killall -s 9 openocd; fi
-	openocd -f sam/openocd.cfg -c "program ${BUILD_DIR}/main.elf verify reset exit"
+	openocd -f sam/openocd.cfg -c "init" -c "halt" -c "at91sam3 gpnvm set 1" -c "program ${BUILD_DIR}/main.elf verify reset exit"
 
 
 # pull in dependencies
