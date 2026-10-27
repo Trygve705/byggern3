@@ -11,6 +11,8 @@
 #define PWM_FREQ 20000UL //20kHz pwm-signal
 #define PWM_PERIOD (MCK / PWM_FREQ)
 
+extern volatile uint8_t rx_flag;
+
 /*
  * Remember to update the Makefile with the (relative) path to the uart.c file.
  * This starter code will not compile until the UART file has been included in the Makefile. 
@@ -28,31 +30,39 @@ int main()
 {   
     uart_init(MCK, 9600);
 
+    motor_init();
+    SystemInit();
+    
+    printf("Hei verden\n");
+    WDT->WDT_MR = WDT_MR_WDDIS; //Disable Watchdog Timer
+
+    // Can node 1 init
     CanInit init;
     init.brp = 20;
     init.propag = 1;
     init.phase1 = 6;
     init.phase2 = 5;
-    init.sjw = 0; //match med cain init fra node 1
+    init.sjw = 0; //match med can init fra node 1
+
     uint8_t rxInterrupt = 1;
     can_init(init, rxInterrupt);
-    motor_init();
-    SystemInit();
-    printf("Hei verden\n");
-    WDT->WDT_MR = WDT_MR_WDDIS; //Disable Watchdog Timer
-
-
-
-
-
 
 
     while (1)
     {
-        set_motor(10);
-        time_spinFor(seconds(1));
-        set_motor(-90);
-        time_spinFor(seconds(1));
+        if (rx_flag) {
+            rx_flag = 0;
+
+            CanMsg* msg;
+            can_rx(msg);
+
+            CAN0->CAN_MB[1].CAN_MCR = CAN_MCR_MTCR;
+            CAN0->CAN_IER = CAN_IER_MB1;
+
+            can_printmsg(*msg);
+
+        }
+
     }
     
 }

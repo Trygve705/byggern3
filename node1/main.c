@@ -39,6 +39,9 @@ int main(void)
     menuInit();     // initialiserer ogsaa OLED
     CAN_init();
 
+    CAN_message* msg;
+    msg->id = 1;
+
     while (1) {
         // OLED-trafikk mellom CAN-operasjonene tester at SPI-bussen deles riktig
         checkMenuPos();
@@ -46,6 +49,14 @@ int main(void)
 
         JoystickPosition joy = getJoystickPosition();
         JoystickPosition slider = getSliderPosition();
+
+        msg->length = 4;
+        msg->data[0] = joy.x;
+        msg->data[1] = joy.y;
+        msg->data[2] = slider.x;
+        msg->data[3] = slider.y;
+        
+        CAN_send_message(msg);
 
         Buttons btns = readButtons();
         setLed(3, btns.R5);

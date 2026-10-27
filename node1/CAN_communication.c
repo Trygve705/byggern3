@@ -29,9 +29,9 @@ void CAN_init(void) {
     sei();
 
     mcp2515_bit_modify(MCP_CANCTRL, 0xE0, 0x80); //configuration mode
-    mcp2515_write(MCP_CNF1, 0x14);
-    mcp2515_write(MCP_CNF2, 0x);
-    mcp2515_write(MCP_CNF3, 0x); //match settings med caninit fra node 2.
+    mcp2515_write(MCP_CNF1, 0x01);
+    mcp2515_write(MCP_CNF2, 0xB1);
+    mcp2515_write(MCP_CNF3, 0x03); //match settings med caninit fra node 2.
     mcp2515_bit_modify(MCP_CANCTRL, 0xE0, 0x00); //normal operation mode
 
     mcp2515_write(MCP_CANINTE, 0b00000001); // Enable RX0IE (full recieve byte på buffer 0) interrupt
