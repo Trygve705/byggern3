@@ -41,6 +41,27 @@ void adcReadAll(uint8_t *ch0, uint8_t *ch1, uint8_t *ch2, uint8_t *ch3){
 }
 
 
+#define JOY_DEADZONE 5 // prosent rundt midten som regnes som 0 (hindrer drift)
+
+static int8_t joyAxis(uint8_t raw, uint8_t center){
+    int16_t v = ((int16_t)raw - center) * 100 / 86;
+    if (v > -JOY_DEADZONE && v < JOY_DEADZONE) return 0;
+    return limitPosition(v);
+}
+
+static int8_t sliderAxis(uint8_t raw){
+    return (int8_t)((int16_t)raw * 200 / 255 - 100); // hele sliderlengden gir -100..100
+}
+
+void getAnalogInputs(JoystickPosition *joy, JoystickPosition *slider){
+    uint8_t ch0, ch1, ch2, ch3;
+    adcReadAll(&ch0, &ch1, &ch2, &ch3);
+    joy->x = joyAxis(ch0, x_center);
+    joy->y = joyAxis(ch1, y_center);
+    slider->x = sliderAxis(ch3);
+    slider->y = sliderAxis(ch2);
+}
+
 JoystickPosition getJoystickPosition(void){
     uint8_t x_raw, y_raw, x_slider, y_slider;
     adcReadAll(&x_raw, &y_raw, & x_slider, &y_slider);
@@ -78,10 +99,16 @@ JoystickDirection getJoystickDirection(void){
 }
 
 void joystickCalibrate(void){
+    // Snitt av 8 målinger; joysticken må stå i ro i midten ved oppstart
     uint8_t x_raw, y_raw, x_slider, y_slider;
-    adcReadAll(&x_raw, &y_raw, & x_slider, &y_slider);
-    x_center = x_raw;
-    y_center = y_raw; 
+    uint16_t x_sum = 0, y_sum = 0;
+    for (uint8_t i = 0; i < 8; i++) {
+        adcReadAll(&x_raw, &y_raw, &x_slider, &y_slider);
+        x_sum += x_raw;
+        y_sum += y_raw;
+    }
+    x_center = x_sum / 8;
+    y_center = y_sum / 8;
 }
 
 

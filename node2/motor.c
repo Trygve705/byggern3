@@ -21,13 +21,22 @@ static float error_integral = 0;
 static float prev_pos = 0;
 static float d_filt = 0;
 static uint8_t first_run = 1;
+static float max_output = 100.0f;
+
+// Servoen tåler bare pulser mellom 0.9 og 2.1 ms (MCK/32 = 2.625 MHz -> 2625 tikk per ms)
+#define SERVO_MIN_TICKS 2363
+#define SERVO_MAX_TICKS 5512
+
+#define SOLENOID_PULSE_TICKS    5  // 100 ms ved 20 ms tick
+#define SOLENOID_COOLDOWN_TICKS 10 // minst 200 ms mellom skudd
+static uint8_t solenoid_ticks = 0;
+static uint8_t solenoid_cooldown = 0;
 
 #define SOLENOID_PIN PIO_PC24
 
 void motor_init(void){
-    PMC -> PMC_PCER0 |= (1 << ID_PIOB);
-    PMC -> PMC_PCER0 |= (1 << ID_PIOB); // Skrus på klokka på B og C port
-    PMC -> PMC_PCER1 |= (1 << (ID_PWM - 32)); // Skru på klokka til PWM
+    PMC -> PMC_PCER0 = (1 << ID_PIOB) | (1 << ID_PIOC); // Skrus på klokka på B og C port
+    PMC -> PMC_PCER1 = (1 << (ID_PWM - 32)); // Skru på klokka til PWM
 
 
     //motor
@@ -61,6 +70,8 @@ void set_servo(int8_t percent){
     if (percent < -100) percent = -100;
 
     int duty_ticks = (0.0815f + 0.0003f * percent) * (52500);
+    if (duty_ticks < SERVO_MIN_TICKS) duty_ticks = SERVO_MIN_TICKS;
+    if (duty_ticks > SERVO_MAX_TICKS) duty_ticks = SERVO_MAX_TICKS;
     PWM -> PWM_CH_NUM[1].PWM_CDTY = duty_ticks; // Antall tikk i en duty
 
 }
@@ -74,11 +85,11 @@ void set_motor(int8_t percent){
     PWM -> PWM_CH_NUM[0].PWM_CDTY = duty_ticks; // Antall tikk i en duty
 
     if (percent > 0){
-        PIOC -> PIO_SODR = PIO_PB23; // setter pin høy
+        PIOC -> PIO_SODR = PIO_PC23; // setter pin høy
     }
     
     else{
-        PIOC -> PIO_CODR = PIO_PB23; // setter pin lav
+        PIOC -> PIO_CODR = PIO_PC23; // setter pin lav
         
     }
 }
@@ -113,7 +124,7 @@ void motor_pos_PID(int8_t pos_ref) {
 
     // Anti-windup: integrer bare når pådraget ikke er i metning,
     // eller når feilen drar pådraget ut av metningen
-    if ((u < 100 && u > -100) || (u >= 100 && error < 0) || (u <= -100 && error > 0)) {
+    if ((u < max_output && u > -max_output) || (u >= max_output && error < 0) || (u <= -max_output && error > 0)) {
         error_integral += error * dt;
     }
     float i_limit = I_MAX / K_I;
@@ -126,10 +137,45 @@ void motor_pos_PID(int8_t pos_ref) {
     if (u > 0) u += MIN_DRIVE;
     if (u < 0) u -= MIN_DRIVE;
 
-    if (u >  100) u =  100;
-    if (u < -100) u = -100;
+    if (u >  max_output) u =  max_output;
+    if (u < -max_output) u = -max_output;
 
     set_motor((int8_t)u);
+}
+
+void motor_pid_reset(void) {
+    error_integral = 0;
+    d_filt = 0;
+    first_run = 1;
+}
+
+void motor_set_max_output(uint8_t percent) {
+    if (percent > 100) percent = 100;
+    max_output = percent;
+}
+
+int8_t motor_get_pos(void) {
+    int32_t range = abs(encoder_max);
+    if (range == 0) return 0;
+    int32_t pos = -get_encoder_pos() * 100 / range;
+    if (pos > 100) pos = 100;
+    if (pos < -100) pos = -100;
+    return (int8_t)pos;
+}
+
+void solenoid_fire(void) {
+    if (solenoid_ticks || solenoid_cooldown) return;
+    PIOC -> PIO_CODR = SOLENOID_PIN;
+    solenoid_ticks = SOLENOID_PULSE_TICKS;
+}
+
+void solenoid_update(void) {
+    if (solenoid_ticks && --solenoid_ticks == 0) {
+        PIOC -> PIO_SODR = SOLENOID_PIN;
+        solenoid_cooldown = SOLENOID_COOLDOWN_TICKS;
+    } else if (solenoid_cooldown) {
+        solenoid_cooldown--;
+    }
 }
 
 void solenoid(void) {

@@ -1,5 +1,4 @@
 #include <stdio.h>
-#include <stdarg.h>
 #include "sam.h"
 #include "uart.h"
 #include "can.h"
@@ -8,88 +7,50 @@
 #include "timer.h"
 #include "IR.h"
 #include "encoder.h"
+#include "game.h"
 
 #define MCK 84000000UL
-#define PWM_FREQ 20000UL //20kHz pwm-signal
-#define PWM_PERIOD (MCK / PWM_FREQ)
 
-extern volatile uint8_t rx_flag;
-
-/*
- * Remember to update the Makefile with the (relative) path to the uart.c file.
- * This starter code will not compile until the UART file has been included in the Makefile. 
- * If you get somewhat cryptic errors referencing functions such as _sbrk, 
- * _close_r, _write_r, _fstat etc, you have most likely not done that correctly.
-
- * If you get errors such as "arm-none-eabi-gcc: no such file", you may need to reinstall the arm gcc packages using
- * apt or your favorite package manager.
- */
-//#include "../path_to/uart.h"
-
-
+extern volatile uint8_t rx_flag; // settes i CAN0_Handler (can.c)
 
 int main()
-{   
-    uart_init(MCK, 115200);
-
-    motor_init();
+{
     SystemInit();
+    WDT->WDT_MR = WDT_MR_WDDIS; // Disable Watchdog Timer
+
+    uart_init(MCK, 115200);
+    motor_init();
     timer_init();
     adc_init();
-    encoder_init();
-    
-    printf("Hei verden\n");
-    WDT->WDT_MR = WDT_MR_WDDIS; //Disable Watchdog Timer
 
-    // Can node 1 init
-    CanInit init;
+    // CAN, må matche oppsettet på node 1 (250 kbit/s)
+    CanInit init = {0};
     init.brp = 20;
     init.propag = 1;
     init.phase1 = 6;
     init.phase2 = 5;
-    init.sjw = 0; //match med can init fra node 1
+    init.sjw = 0;
+    can_init(init, 1);
 
-    uint8_t rxInterrupt = 1;
-    can_init(init, rxInterrupt);
+    encoder_init(); // kalibrerer racketen (kjører motoren til begge ender)
+    printf("Node 2 klar. encoder max = %ld, min = %ld\r\n", (long)encoder_max, (long)encoder_min);
 
-    CanMsg msg = {0};
-
-    printf("max = %ld, min = %ld, mean = %ld", encoder_max, encoder_min, encoder_mean);
-
-    uint8_t prev_btn = 0;
+    game_init();
 
     while (1)
     {
         if (rx_flag) {
             rx_flag = 0;
-
-            can_rx(&msg);
-
-            CAN0->CAN_MB[1].CAN_MCR = CAN_MCR_MTCR;
-            CAN0->CAN_IER = CAN_IER_MB1;
-
-            // can_printmsg(msg);
-
-            set_servo(-msg.byte[0]);
-
-            if (msg.byte[4] != 0x00 && prev_btn == 0) {
-                solenoid();
+            CanMsg msg;
+            while (can_rx(&msg)) {
+                game_on_message(&msg);
             }
-            prev_btn = msg.byte[4];
-    }
+            CAN0->CAN_IER = CAN_IER_MB1; // slå på mottaksavbrudd igjen
+        }
 
         if (timer_flag) {
             timer_flag = 0;
-            // printf("%lu ms\r\n", (uint32_t)totalMsecs(time_now()));
-            printf("IR: %u          ", adc_read_ir());
-            ir_score_update();
-            printf("score: %u, last_score: %u, highscore: %u\r\n", score, last_score, highscore);
-            
-            printf("encoder value: %ld \r\n", (long)get_encoder_pos());
-
-            motor_pos_PID(msg.byte[2]);
+            game_tick();
         }
-        
     }
-    
 }

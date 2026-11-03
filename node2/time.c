@@ -5,7 +5,7 @@
 
 
 uint64_t calib;
-static uint64_t now = 0;
+static volatile uint64_t now = 0;
     
 __attribute__((constructor)) void time_init(void){
     // Clock calibration is set to '(num cycles for 1ms) / 8'
@@ -30,7 +30,13 @@ void SysTick_Handler(void){
 
 
 uint64_t time_now(void){
-    return now + calib - SysTick->VAL;
+    uint64_t n;
+    uint32_t v;
+    do {
+        n = now;
+        v = SysTick->VAL;
+    } while(n != now); // les på nytt hvis SysTick-avbruddet kom midt i
+    return n + calib - v;
 }
 
 

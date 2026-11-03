@@ -1,14 +1,9 @@
 #include <sam.h>
-#include <stdio.h>
-#include <stdlib.h>
 #include "IR.h"
 
 #define IR_CHANNEL 7
-#define IR_THRESHOLD 1000
-
-volatile uint16_t score = 0;
-volatile uint8_t last_score = 0;
-volatile uint8_t highscore = 0;
+#define IR_THRESHOLD 1000 // under denne verdien er strålen blokkert
+#define IR_DEBOUNCE 3     // antall like målinger på rad før tilstanden endres (3 * 20 ms)
 
 void adc_init(void) {
     // Skru på klokka til adc (ID 37, ligger i PCER1)
@@ -28,16 +23,16 @@ uint16_t adc_read_ir(void) {
     return ADC->ADC_CDR[IR_CHANNEL] & 0xFFF;
 }
 
-void ir_score_update(void) {
-    if (adc_read_ir() > IR_THRESHOLD) {
-        score++;
-    } else {
-        if (score != 0) {
-            last_score = score;
-        }
-        score = 0;
-        if (last_score > highscore) {
-            highscore = last_score;
-        }
+uint8_t ir_update(void) {
+    static uint8_t blocked = 0;
+    static uint8_t count = 0;
+
+    uint8_t now_blocked = adc_read_ir() < IR_THRESHOLD;
+    if (now_blocked == blocked) {
+        count = 0;
+    } else if (++count >= IR_DEBOUNCE) {
+        blocked = now_blocked;
+        count = 0;
     }
+    return blocked;
 }

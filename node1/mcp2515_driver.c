@@ -49,3 +49,16 @@ uint8_t mcp2515_read_status(void) {
     deselectSlave();
     return status;
 }
+void mcp2515_load_tx0(const uint8_t *buf, uint8_t len) {
+    selectSlave(MCP_SLAVE);
+    spiWriteByte(0x40); // LOAD TX BUFFER, start på TXB0SIDH
+    while (len--) spiWriteByte(*buf++);
+    deselectSlave();
+}
+
+void mcp2515_read_rx(uint8_t rx_buffer, uint8_t *buf, uint8_t len) {
+    selectSlave(MCP_SLAVE);
+    spiWriteByte(rx_buffer ? 0x94 : 0x90); // READ RX BUFFER, start på RXBnSIDH
+    while (len--) *buf++ = spiReadByte();
+    deselectSlave();
+}

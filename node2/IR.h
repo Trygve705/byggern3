@@ -2,12 +2,9 @@
 
 #include <stdint.h>
 
-extern volatile uint16_t score;
-extern volatile uint8_t last_score;
-extern volatile uint8_t highscore;
-
 void adc_init(void);
 
 uint16_t adc_read_ir(void);
 
-void ir_score_update(void);
+// Kalles hvert tick. Returnerer 1 når ballen blokkerer IR-strålen (filtrert mot støy).
+uint8_t ir_update(void);

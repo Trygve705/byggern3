@@ -19,6 +19,7 @@ JoystickPosition getJoystickPosition(void);
 JoystickDirection getJoystickDirection(void);
 JoystickPosition getSliderPosition(void);
 void joystickCalibrate(void);
+void getAnalogInputs(JoystickPosition *joy, JoystickPosition *slider); // én ADC-avlesning for alt
 
 
 #endif

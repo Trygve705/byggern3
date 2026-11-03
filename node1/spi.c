@@ -8,6 +8,12 @@
 
 #include <avr/io.h>
 #include <stdint.h>
+#include "spi.h"
+
+// Klokkehastighet per enhet. IO-kortet er tregt (fosc/16), OLED og MCP2515 takler mye mer (fosc/4).
+#define SPCR_BASE ((1 << SPE) | (1 << MSTR))
+#define SPCR_DIV16 (SPCR_BASE | (1 << SPR0))
+#define SPCR_DIV4  (SPCR_BASE)
 
 void spiInit(void){
 
@@ -20,9 +26,7 @@ void spiInit(void){
 
     PORTB |= (1 << SPI_SS) | (1 << SPI_SS2);
 
-
-    SPCR |= (1 << SPE) | (1 << MSTR) | (1 << SPR0);
-
+    SPCR = SPCR_DIV16;
 }
 
 uint8_t spiWriteByte(uint8_t data){
@@ -40,18 +44,20 @@ void selectSlave(uint8_t slave){
     switch (slave)
     {
     case 0:
+        SPCR = SPCR_DIV16;
         PORTB &= ~(1 << SPI_SS);
         break;
 
     case 1: 
+        SPCR = SPCR_DIV4;
         PORTB &= ~(1 << SPI_SS2);
         break;
 
     case 2:
+        SPCR = SPCR_DIV4;
         PORTD &= ~(1 << SPI_SS3);
         break;
         
-    
     default:
         break;
     } 

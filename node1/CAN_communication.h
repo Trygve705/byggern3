@@ -10,7 +10,8 @@ typedef struct {
 } CAN_message;
 
 void CAN_init(void);
-void CAN_send_message(const CAN_message* msg);
-uint8_t CAN_recieve_message(CAN_message* msg);
+uint8_t CAN_send_message(const CAN_message* msg);   // 1 = sendt, 0 = ingen ACK (node 2 av?)
+uint8_t CAN_recieve_message(CAN_message* msg);      // 1 = melding mottatt
+uint16_t CAN_tx_errors(void);
 
 #endif

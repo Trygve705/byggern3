@@ -15,6 +15,7 @@ SOURCE_FILES = \
 	timer.c \
 	IR.c \
 	encoder.c \
+	game.c
 
 # Feel free to ignore anything below this line
 VPATH:= $(dir $(SOURCE_FILES))
@@ -29,8 +30,8 @@ AS:=arm-none-eabi-as
 ELF=$(BUILD_DIR)/main.elf
 
 LDFLAGS:= -T$(LDSCRIPT) -mthumb -mcpu=cortex-m3 -Wl,--gc-sections
-CFLAGS:= -mcpu=cortex-m3 -mthumb -g -std=c11 -MMD
-CFLAGS+= -I sam -I sam/sam3x/include -I sam/sam3x/source -I sam/cmsis -I .
+CFLAGS:= -mcpu=cortex-m3 -mthumb -g -std=gnu11 -MMD -O2 -Wall -ffunction-sections -fdata-sections
+CFLAGS+= -I sam -I sam/sam3x/include -I sam/sam3x/source -I sam/cmsis -I . -I ../common
 CFLAGS+= -D $(MCUTYPE)
 
 .DEFAULT_GOAL := $(ELF)
