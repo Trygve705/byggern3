@@ -6,7 +6,7 @@
 #define IR_CHANNEL 7
 #define IR_THRESHOLD 1000
 
-volatile uint8_t score = 0;
+volatile uint16_t score = 0;
 volatile uint8_t last_score = 0;
 volatile uint8_t highscore = 0;
 

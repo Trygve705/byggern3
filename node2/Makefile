@@ -14,6 +14,7 @@ SOURCE_FILES = \
 	time.c \
 	timer.c \
 	IR.c \
+	encoder.c \
 
 # Feel free to ignore anything below this line
 VPATH:= $(dir $(SOURCE_FILES))

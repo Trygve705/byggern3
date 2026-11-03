@@ -2,7 +2,7 @@
 
 #include <stdint.h>
 
-extern volatile uint8_t score;
+extern volatile uint16_t score;
 extern volatile uint8_t last_score;
 extern volatile uint8_t highscore;
 

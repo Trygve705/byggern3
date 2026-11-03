@@ -7,7 +7,7 @@
 #include "time.h"
 #include "timer.h"
 #include "IR.h"
-
+#include "encoder.h"
 
 #define MCK 84000000UL
 #define PWM_FREQ 20000UL //20kHz pwm-signal
@@ -36,6 +36,7 @@ int main()
     SystemInit();
     timer_init();
     adc_init();
+    encoder_init();
     
     printf("Hei verden\n");
     WDT->WDT_MR = WDT_MR_WDDIS; //Disable Watchdog Timer
@@ -53,6 +54,8 @@ int main()
 
     CanMsg msg;
 
+    printf("max = %ld, min = %ld, mean = %ld", encoder_max, encoder_min, encoder_mean);
+
     while (1)
     {
         if (rx_flag) {
@@ -66,15 +69,20 @@ int main()
             // can_printmsg(msg);
 
             set_motor(msg.byte[0]);
-        }
+            set_servo(msg.byte[1]);
+    }
 
         if (timer_flag) {
             timer_flag = 0;
             // printf("%lu ms\r\n", (uint32_t)totalMsecs(time_now()));
             printf("IR: %u          ", adc_read_ir());
             ir_score_update();
-            printf("score: %u, last_score: %u, highscore: %u\r\n", score, last_score, highscore);
+            // printf("score: %u, last_score: %u, highscore: %u\r\n", score, last_score, highscore);
+            
+            printf("encoder value: %ld \r\n", (long)get_encoder_pos());
         }
+
+        
 
     }
     
