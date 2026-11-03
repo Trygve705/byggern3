@@ -52,9 +52,11 @@ int main()
     uint8_t rxInterrupt = 1;
     can_init(init, rxInterrupt);
 
-    CanMsg msg;
+    CanMsg msg = {0};
 
     printf("max = %ld, min = %ld, mean = %ld", encoder_max, encoder_min, encoder_mean);
+
+    uint8_t prev_btn = 0;
 
     while (1)
     {
@@ -68,8 +70,12 @@ int main()
 
             // can_printmsg(msg);
 
-            set_motor(msg.byte[0]);
-            set_servo(msg.byte[1]);
+            set_servo(-msg.byte[0]);
+
+            if (msg.byte[4] != 0x00 && prev_btn == 0) {
+                solenoid();
+            }
+            prev_btn = msg.byte[4];
     }
 
         if (timer_flag) {
@@ -77,13 +83,13 @@ int main()
             // printf("%lu ms\r\n", (uint32_t)totalMsecs(time_now()));
             printf("IR: %u          ", adc_read_ir());
             ir_score_update();
-            // printf("score: %u, last_score: %u, highscore: %u\r\n", score, last_score, highscore);
+            printf("score: %u, last_score: %u, highscore: %u\r\n", score, last_score, highscore);
             
             printf("encoder value: %ld \r\n", (long)get_encoder_pos());
+
+            motor_pos_PID(msg.byte[2]);
         }
-
         
-
     }
     
 }

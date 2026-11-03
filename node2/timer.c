@@ -5,7 +5,6 @@
 #include "time.h"
 
 #define RTT_FREQ 29900
-#define TIMER_PERIOD_MS 20
 
 volatile uint8_t timer_flag = 0;
 

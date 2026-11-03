@@ -21,10 +21,10 @@ void encoder_init(void) {
     TC2->TC_CHANNEL[0].TC_CMR = TC_CMR_TCCLKS_XC0;
     TC2->TC_CHANNEL[0].TC_CCR = TC_CCR_CLKEN | TC_CCR_SWTRG;
 
-    set_motor(30);
+    set_motor(40);
     time_spinFor(msecs(1000));
     encoder_min = (int32_t)TC2->TC_CHANNEL[0].TC_CV;
-    set_motor(-30);
+    set_motor(-40);
     time_spinFor(msecs(1000));
     encoder_max = (int32_t)TC2->TC_CHANNEL[0].TC_CV;
     set_motor(0);
