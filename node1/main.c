@@ -42,19 +42,31 @@ int main(void)
     CAN_message msg;
     msg.id = 1;
 
+    CAN_message scoreMsg;
+
     JoystickPosition joy;
     JoystickPosition slider;
 
     Buttons btns;
 
+    uint16_t score = 0;
+    uint8_t last_score = 0;
+    uint8_t highscore = 0;
+
     while (1) {
         // OLED-trafikk mellom CAN-operasjonene tester at SPI-bussen deles riktig
-        checkMenuPos();
-        drawCross();
+        btns = readButtons();
+        updateMenu(btns);
+
+        if (CAN_recieve_message(&scoreMsg)) {
+            score = ((uint16_t)(uint8_t)scoreMsg.data[1] << 8) | (uint8_t)scoreMsg.data[0];
+            last_score = (uint8_t)scoreMsg.data[2];
+            highscore = (uint8_t)scoreMsg.data[3];
+        }
+        updateScoreDisplay(score, last_score, highscore);
 
         joy = getJoystickPosition();
         slider = getSliderPosition();
-        btns = readButtons();
 
         msg.length = 5;
         msg.data[0] = joy.x;
@@ -62,7 +74,7 @@ int main(void)
         msg.data[2] = slider.x;
         msg.data[3] = slider.y;
         msg.data[4] = btns.L2;
-        
+
         CAN_send_message(&msg);
 
         setLed(3, btns.R5);

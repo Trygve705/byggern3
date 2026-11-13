@@ -1,101 +1,170 @@
 #include "oled.h"
 #include "adc.h"
 #include "menu.h"
+#include <stdio.h>
 
+static Screen currentScreen = SCREEN_MENU;
 
-static uint8_t menyValg; 
-static JoystickDirection forrigeRetning;
-uint8_t forrigeValg;
+static uint8_t menuValg = 1; // 1 = START GAME, 2 = LEADERBOARD
+static JoystickDirection forrigeRetning = joy_netural;
+static uint8_t forrigeNB = 0;
 
-uint8_t menuElements[3] = {2, 4, 6};
+static uint16_t shownScore = 0xFFFF;    // umulige startverdier => tvinger redraw ved første kall
+static uint8_t shownHighscore = 0xFF;
+static uint8_t shownLastScore = 0xFF;
 
+static const uint8_t menuRows[2] = {2, 4};
+static const uint8_t valueColumn = 74;
 
-void menuInit(void){
-    oledInit();
+static void printValue(uint8_t row, uint8_t column, uint16_t value) {
+    char buf[6];
+    sprintf(buf, "%-5u", value);
+    oledPos(row, column);
+    oledPrint(buf);
+}
 
-    oledPos(0, 50);
-    char *intro = "MENU";
+static void drawMenuCursor(void) {
+    for (uint8_t i = 0; i < 2; i++) {
+        oledPos(menuRows[i], 100);
+        char *blank = " ";
+        oledPrint(blank);
+    }
+
+    oledPos(menuRows[menuValg - 1], 100);
+    char *cross = "X";
+    oledPrint(cross);
+}
+
+static void drawMainMenu(void) {
+    oledClearLine(0);
+    oledClearLine(2);
+    oledClearLine(4);
+    oledClearLine(6);
+
+    oledPos(0, 34);
+    char *intro = "BYGGERN";
     oledPrint(intro);
 
     oledPos(2, 10);
-    char *valg1 = "Valg 1";
+    char *valg1 = "START GAME";
     oledPrint(valg1);
 
     oledPos(4, 10);
-    char *valg2 = "Valg 2";
+    char *valg2 = "LEADERBOARD";
     oledPrint(valg2);
 
-    oledPos(6, 10);
-    char *valg3 = "Valg 3";
-    oledPrint(valg3);
-
-    uint8_t menyValg = 1;
-    JoystickDirection forrigeRetning = 0;
-
-    
+    drawMenuCursor();
 }
 
+static void drawLeaderboardScreen(void) {
+    oledClearLine(0);
+    oledClearLine(2);
+    oledClearLine(4);
+    oledClearLine(6);
 
+    oledPos(0, 22);
+    char *title = "LEADERBOARD";
+    oledPrint(title);
 
-void checkMenuPos(void){
-    JoystickDirection direction;
-    forrigeValg = menyValg;
-    direction = getJoystickDirection();
-    uint8_t endret = 0;
+    oledPos(2, 10);
+    char *highLabel = "HIGHSCORE:";
+    oledPrint(highLabel);
 
-    if (direction != forrigeRetning){
-        if (direction == 4){
-            if (menyValg == 3){
-                menyValg = 1;
+    oledPos(4, 10);
+    char *lastLabel = "LAST GAME:";
+    oledPrint(lastLabel);
+
+    oledPos(6, 10);
+    char *back = "NB = BACK";
+    oledPrint(back);
+
+    // Tving redraw av tallene mot de ferske verdiene
+    shownHighscore = 0xFF;
+    shownLastScore = 0xFF;
+}
+
+static void drawGameScreen(void) {
+    oledClearLine(0);
+    oledClearLine(2);
+    oledClearLine(4);
+    oledClearLine(6);
+
+    oledPos(0, 40);
+    char *title = "GAME";
+    oledPrint(title);
+
+    oledPos(2, 10);
+    char *scoreLabel = "SCORE:";
+    oledPrint(scoreLabel);
+
+    oledPos(4, 10);
+    char *highLabel = "HIGHSCORE:";
+    oledPrint(highLabel);
+
+    shownScore = 0xFFFF;
+    shownHighscore = 0xFF;
+}
+
+void menuInit(void) {
+    oledInit();
+    drawMainMenu();
+}
+
+Screen getCurrentScreen(void) {
+    return currentScreen;
+}
+
+void updateMenu(Buttons btns) {
+    JoystickDirection direction = getJoystickDirection();
+    uint8_t nbPressed = btns.NB && !forrigeNB;
+    forrigeNB = btns.NB;
+
+    if (currentScreen == SCREEN_MENU) {
+        if (direction != forrigeRetning) {
+            if (direction == joy_down) {
+                menuValg = (menuValg == 2) ? 1 : menuValg + 1;
+                drawMenuCursor();
+            } else if (direction == joy_up) {
+                menuValg = (menuValg == 1) ? 2 : menuValg - 1;
+                drawMenuCursor();
             }
-            else{
-                menyValg += 1;
-            }
-
         }
-        else if (direction == 3)
-        {
-            if (menyValg == 1){
-                menyValg = 3;
-            }
-            else{
-                menyValg -= 1;
+
+        if (nbPressed) {
+            if (menuValg == 1) {
+                currentScreen = SCREEN_GAME;
+                drawGameScreen();
+            } else {
+                currentScreen = SCREEN_LEADERBOARD;
+                drawLeaderboardScreen();
             }
         }
-        
+    } else if (nbPressed) {
+        currentScreen = SCREEN_MENU;
+        drawMainMenu();
     }
 
     forrigeRetning = direction;
-    
 }
 
-void drawCross(void){
-    oledPos(menuElements[forrigeValg - 1], 100);
-    char *blank = " ";
-    oledPrint(blank);
-
-    if (menyValg == 1){
-        oledPos(2, 100);
-        char *cross = "X";
-        oledPrint(cross);
-
+void updateScoreDisplay(uint16_t score, uint8_t last_score, uint8_t highscore) {
+    if (currentScreen == SCREEN_GAME) {
+        if (score != shownScore) {
+            printValue(2, valueColumn, score);
+            shownScore = score;
+        }
+        if (highscore != shownHighscore) {
+            printValue(4, valueColumn, highscore);
+            shownHighscore = highscore;
+        }
+    } else if (currentScreen == SCREEN_LEADERBOARD) {
+        if (highscore != shownHighscore) {
+            printValue(2, valueColumn, highscore);
+            shownHighscore = highscore;
+        }
+        if (last_score != shownLastScore) {
+            printValue(4, valueColumn, last_score);
+            shownLastScore = last_score;
+        }
     }
-
-    if (menyValg == 2){
-        oledPos(4, 100);
-        char *cross = "X";
-        oledPrint(cross);
-
-    }
-
-    if (menyValg == 3){
-        oledPos(6, 100);
-        char *cross = "X";
-        oledPrint(cross);
-
-    }
-}
-
-uint8_t getMenuChoise(void) {
-    return menyValg;
 }

@@ -84,7 +84,16 @@ int main()
             printf("IR: %u          ", adc_read_ir());
             ir_score_update();
             printf("score: %u, last_score: %u, highscore: %u\r\n", score, last_score, highscore);
-            
+
+            CanMsg scoreMsg = {0};
+            scoreMsg.id = 2;
+            scoreMsg.length = 4;
+            scoreMsg.byte[0] = (int8_t)(score & 0xFF);
+            scoreMsg.byte[1] = (int8_t)(score >> 8);
+            scoreMsg.byte[2] = (int8_t)last_score;
+            scoreMsg.byte[3] = (int8_t)highscore;
+            can_tx(scoreMsg);
+
             printf("encoder value: %ld \r\n", (long)get_encoder_pos());
 
             motor_pos_PID(msg.byte[2]);
