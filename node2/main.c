@@ -85,14 +85,18 @@ int main()
             ir_score_update();
             printf("score: %u, last_score: %u, highscore: %u\r\n", score, last_score, highscore);
 
-            CanMsg scoreMsg = {0};
-            scoreMsg.id = 2;
-            scoreMsg.length = 4;
-            scoreMsg.byte[0] = (int8_t)(score & 0xFF);
-            scoreMsg.byte[1] = (int8_t)(score >> 8);
-            scoreMsg.byte[2] = (int8_t)last_score;
-            scoreMsg.byte[3] = (int8_t)highscore;
-            can_tx(scoreMsg);
+            // Beste-effort: aldri la CAN-sending blokkere spill-loopen (can_tx busy-waiter
+            // på mailboks-status hvis den ikke er klar, se can.c)
+            if (CAN0->CAN_MB[0].CAN_MSR & CAN_MSR_MRDY) {
+                CanMsg scoreMsg = {0};
+                scoreMsg.id = 2;
+                scoreMsg.length = 4;
+                scoreMsg.byte[0] = (int8_t)(score & 0xFF);
+                scoreMsg.byte[1] = (int8_t)(score >> 8);
+                scoreMsg.byte[2] = (int8_t)last_score;
+                scoreMsg.byte[3] = (int8_t)highscore;
+                can_tx(scoreMsg);
+            }
 
             printf("encoder value: %ld \r\n", (long)get_encoder_pos());
 
