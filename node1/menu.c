@@ -10,8 +10,8 @@ static JoystickDirection forrigeRetning = joy_netural;
 static uint8_t forrigeNB = 0;
 
 static uint16_t shownScore = 0xFFFF;    // umulige startverdier => tvinger redraw ved første kall
-static uint8_t shownHighscore = 0xFF;
-static uint8_t shownLastScore = 0xFF;
+static uint16_t shownHighscore = 0xFFFF;
+static uint16_t shownLastScore = 0xFFFF;
 
 static const uint8_t menuRows[2] = {2, 4};
 static const uint8_t valueColumn = 74;
@@ -79,8 +79,8 @@ static void drawLeaderboardScreen(void) {
     oledPrint(back);
 
     // Tving redraw av tallene mot de ferske verdiene
-    shownHighscore = 0xFF;
-    shownLastScore = 0xFF;
+    shownHighscore = 0xFFFF;
+    shownLastScore = 0xFFFF;
 }
 
 static void drawGameScreen(void) {
@@ -102,7 +102,7 @@ static void drawGameScreen(void) {
     oledPrint(highLabel);
 
     shownScore = 0xFFFF;
-    shownHighscore = 0xFF;
+    shownHighscore = 0xFFFF;
 }
 
 void menuInit(void) {
@@ -147,7 +147,7 @@ void updateMenu(Buttons btns) {
     forrigeRetning = direction;
 }
 
-void updateScoreDisplay(uint16_t score, uint8_t last_score, uint8_t highscore) {
+void updateScoreDisplay(uint16_t score, uint16_t last_score, uint16_t highscore) {
     if (currentScreen == SCREEN_GAME) {
         if (score != shownScore) {
             printValue(2, valueColumn, score);

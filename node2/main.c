@@ -90,11 +90,13 @@ int main()
             if (CAN0->CAN_MB[0].CAN_MSR & CAN_MSR_MRDY) {
                 CanMsg scoreMsg = {0};
                 scoreMsg.id = 2;
-                scoreMsg.length = 4;
+                scoreMsg.length = 6;
                 scoreMsg.byte[0] = (int8_t)(score & 0xFF);
                 scoreMsg.byte[1] = (int8_t)(score >> 8);
-                scoreMsg.byte[2] = (int8_t)last_score;
-                scoreMsg.byte[3] = (int8_t)highscore;
+                scoreMsg.byte[2] = (int8_t)(last_score & 0xFF);
+                scoreMsg.byte[3] = (int8_t)(last_score >> 8);
+                scoreMsg.byte[4] = (int8_t)(highscore & 0xFF);
+                scoreMsg.byte[5] = (int8_t)(highscore >> 8);
                 can_tx(scoreMsg);
             }
 

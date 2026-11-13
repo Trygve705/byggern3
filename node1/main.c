@@ -50,8 +50,8 @@ int main(void)
     Buttons btns;
 
     uint16_t score = 0;
-    uint8_t last_score = 0;
-    uint8_t highscore = 0;
+    uint16_t last_score = 0;
+    uint16_t highscore = 0;
 
     while (1) {
         // OLED-trafikk mellom CAN-operasjonene tester at SPI-bussen deles riktig
@@ -60,8 +60,8 @@ int main(void)
 
         if (CAN_recieve_message(&scoreMsg)) {
             score = ((uint16_t)(uint8_t)scoreMsg.data[1] << 8) | (uint8_t)scoreMsg.data[0];
-            last_score = (uint8_t)scoreMsg.data[2];
-            highscore = (uint8_t)scoreMsg.data[3];
+            last_score = ((uint16_t)(uint8_t)scoreMsg.data[3] << 8) | (uint8_t)scoreMsg.data[2];
+            highscore = ((uint16_t)(uint8_t)scoreMsg.data[5] << 8) | (uint8_t)scoreMsg.data[4];
             printf("CAN score msg: score=%u last=%u high=%u screen=%d\r\n", score, last_score, highscore, getCurrentScreen());
         }
         updateScoreDisplay(score, last_score, highscore);

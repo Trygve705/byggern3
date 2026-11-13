@@ -12,7 +12,7 @@ typedef enum {
 
 void menuInit(void);
 void updateMenu(Buttons btns);
-void updateScoreDisplay(uint16_t score, uint8_t last_score, uint8_t highscore);
+void updateScoreDisplay(uint16_t score, uint16_t last_score, uint16_t highscore);
 Screen getCurrentScreen(void);
 
 #endif

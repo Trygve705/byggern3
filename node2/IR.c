@@ -7,8 +7,8 @@
 #define IR_THRESHOLD 500
 
 volatile uint16_t score = 0;
-volatile uint8_t last_score = 0;
-volatile uint8_t highscore = 0;
+volatile uint16_t last_score = 0;
+volatile uint16_t highscore = 0;
 
 void adc_init(void) {
     // Skru på klokka til adc (ID 37, ligger i PCER1)
