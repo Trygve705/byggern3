@@ -73,8 +73,9 @@ void can_init(CanInit init, uint8_t rxInterrupt){
 void can_tx(CanMsg m){
     while(!(CAN0->CAN_MB[txMailbox].CAN_MSR & CAN_MSR_MRDY)){}
     
-    // Set message ID and use CAN 2.0B protocol
-    CAN0->CAN_MB[txMailbox].CAN_MID = CAN_MID_MIDvA(m.id) | CAN_MID_MIDE ;
+    // Set message ID. Standard (11-bit) frame, matching node1's mcp2515 frames
+    // (CAN_MID_MIDE would send an extended 29-bit frame with only the top 11 bits set)
+    CAN0->CAN_MB[txMailbox].CAN_MID = CAN_MID_MIDvA(m.id);
         
     // Coerce maximum 8 byte length
     m.length = m.length > 8 ? 8 : m.length;

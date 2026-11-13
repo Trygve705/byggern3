@@ -4,7 +4,7 @@
 #include "IR.h"
 
 #define IR_CHANNEL 7
-#define IR_THRESHOLD 1000
+#define IR_THRESHOLD 500
 
 volatile uint16_t score = 0;
 volatile uint8_t last_score = 0;

@@ -62,6 +62,7 @@ int main(void)
             score = ((uint16_t)(uint8_t)scoreMsg.data[1] << 8) | (uint8_t)scoreMsg.data[0];
             last_score = (uint8_t)scoreMsg.data[2];
             highscore = (uint8_t)scoreMsg.data[3];
+            printf("CAN score msg: score=%u last=%u high=%u screen=%d\r\n", score, last_score, highscore, getCurrentScreen());
         }
         updateScoreDisplay(score, last_score, highscore);
 
